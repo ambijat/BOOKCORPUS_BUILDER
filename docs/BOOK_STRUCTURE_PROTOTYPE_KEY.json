@@ -1,0 +1,91 @@
+{
+  "prototype_name": "BOOKCORPUSBUILDER Book Structure Key",
+  "schema_version": "1.0",
+  "purpose": "Supply this file together with a source book PDF. Generated output must follow this contract exactly.",
+  "output_document": {
+    "outline": [
+      {
+        "sno": "1",
+        "title": "Preface",
+        "kind": "preface",
+        "level": 1,
+        "printed_start": "ix",
+        "physical_start": 15,
+        "pdf_index": 14
+      },
+      {
+        "sno": "2",
+        "title": "Introduction",
+        "kind": "introduction",
+        "level": 1,
+        "printed_start": 1,
+        "physical_start": 21,
+        "pdf_index": 20
+      },
+      {
+        "sno": "2.1",
+        "title": "Example internal section",
+        "kind": "section",
+        "level": 2,
+        "printed_start": 3,
+        "physical_start": 23,
+        "pdf_index": 22
+      }
+    ]
+  },
+  "required_top_level_keys": [
+    "outline"
+  ],
+  "required_row_keys": [
+    "sno",
+    "title",
+    "kind",
+    "level",
+    "printed_start",
+    "physical_start",
+    "pdf_index"
+  ],
+  "allowed_kinds": [
+    "part",
+    "chapter",
+    "section",
+    "subsection",
+    "analytical_section",
+    "preface",
+    "introduction",
+    "appendix",
+    "bibliography",
+    "notes",
+    "index",
+    "caption",
+    "topic",
+    "glossary",
+    "acknowledgement",
+    "other"
+  ],
+  "field_rules": {
+    "sno": "Non-empty string such as 1, 2.1, or 3.2.1.",
+    "title": "Use the printed heading where present. Use a concise inferred heading only when necessary.",
+    "kind": "Must be one of allowed_kinds. Inferred internal divisions normally use section.",
+    "level": "Positive integer representing hierarchy depth.",
+    "printed_start": "Arabic pages are integers; Roman pages are lowercase strings; null only when unresolved.",
+    "physical_start": "One-based physical page number in the PDF.",
+    "pdf_index": "Zero-based PDF index; must equal physical_start minus 1."
+  },
+  "normalization_rules": [
+    "Convert Arabic page strings such as \"27\" to integer 27.",
+    "Convert Roman labels such as \"IX\" to lowercase \"ix\".",
+    "Do not emit unsupported keys.",
+    "Use section for inferred internal divisions.",
+    "Preserve source order.",
+    "Ensure pdf_index = physical_start - 1.",
+    "Do not encode uncertainty by changing kind."
+  ],
+  "generation_instructions": [
+    "Read the complete book PDF.",
+    "Identify front matter, chapters, sections, subsections, appendices, bibliography, notes, captions, and index.",
+    "Record printed_start, physical_start, and pdf_index for every retained node.",
+    "Return one valid JSON document containing only the outline list and supported row keys.",
+    "Validate all rows before delivery."
+  ]
+}

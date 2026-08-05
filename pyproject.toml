@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bookcorpusbuilder"
+version = "1.0.0rc2"
+description = "A reviewable PDF-to-section-corpus pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pdfplumber>=0.11,<1",
+    "pydantic>=2.8,<3",
+]
+
+[project.optional-dependencies]
+analysis = [
+    "matplotlib>=3.8,<4",
+    "nltk>=3.9,<4",
+    "numpy>=1.26,<3",
+    "pandas>=2.2,<3",
+    "scikit-learn>=1.5,<2",
+]
+tts = ["pyttsx3>=2.98,<3"]
+gui = ["PySide6>=6.7,<7"]
+ollama = ["ollama>=0.4,<1"]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+bookcorpus-outline = "bookcorpusbuilder.outline:main"
+bookcorpus-extract = "bookcorpusbuilder.extract:main"
+bookcorpus-tts = "bookcorpusbuilder.tts:main"
+bookcorpus-gui = "bookcorpusbuilder.gui.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

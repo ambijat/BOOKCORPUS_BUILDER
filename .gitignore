@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+.idea/
+.bookcorpusbuilder.local.json
+
+# Generated work products; keep directory placeholders.
+data/work/outlines/*
+!data/work/outlines/.gitkeep
+data/output/**
+!data/output/**/
+!data/output/**/.gitkeep
+
+# Real source PDFs: not machine-local or generated, but real (and in this
+# checkout, likely copyrighted) input data that must not enter a public
+# repository until source-PDF rights/redistribution are documented
+# (see KNOWN_ISSUES.md MED-4, IMPROVEMENT_ROADMAP.md Phase 4).
+data/input/pdfs/*
+!data/input/pdfs/.gitkeep
+
+# Legacy Generation 1/2 historical output dump: contains real book PDFs
+# (local_books_v1/) and verbatim extracted chapter text (book*_subcorpora/,
+# chunks/sections/) scattered across several of its subdirectories, same
+# rights concern as data/input/pdfs/ above. archive/legacy_code/ (actual
+# authored code) is unaffected and stays tracked.
+archive/output_dump/*
+!archive/output_dump/.gitkeep
+
+# Build artefacts and stale audit-package archives (python -m build output,
+# plus pre-existing AUDIT_PACKAGE.md exports under dist/).
+build/
+dist/
+
+# Miscellaneous local/generated files found during release-prep vetting.
+bookcorpusbuilder.txt

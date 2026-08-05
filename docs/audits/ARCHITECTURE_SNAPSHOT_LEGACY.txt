@@ -1,0 +1,381 @@
+.
+├── architecture.txt
+├── ATTRIBUTES.md
+├── book_subcorpora_builder_v6.py
+├── book_subcorpora_builder_v7.py
+├── causal_connection_greater_eurasia_bri.png
+├── chunks
+│   ├── jsonl
+│   ├── manifests
+│   └── sections
+├── contents
+├── Corpus_Applied_Model.mm
+├── corpusflowchart.png
+├── corpusknowledge1.mm
+├── Corpus_to_Deliverables.mm
+├── debate_cast_script.txt
+├── debate_cast_tts.py
+├── DIRECTION_OF_REFINEMENT.md
+├── docs
+├── IMPROVEMENT_ROADMAP.md
+├── local_books
+├── oldcode
+│   ├── book_subcorpora_builder_v5.py
+│   ├── debate_cast_tts.ipynb
+│   └── pdf_outline_to_csv.py
+├── ONTOLOGICAL_BASIS.md
+├── otuput_dump
+│   ├── book1_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_05
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_06
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_07
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_08
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_09
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_10
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book2_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_05
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_06
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_07
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_08
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_09
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_10
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_11
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book3_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_05
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book3_subcorpora_outputs
+│   │   ├── chapter_clusters_kmeans_compound.csv
+│   │   ├── chapters_overview.csv
+│   │   ├── chapter_summary_compound.csv
+│   │   ├── chapter_summary_words.csv
+│   │   ├── chapter_topics_nmf_compound.csv
+│   │   ├── chapter_top_terms_compound.csv
+│   │   ├── chapter_top_terms_words.csv
+│   │   ├── paragraphs_enriched_compound.csv
+│   │   └── paragraphs_raw.csv
+│   ├── chunks
+│   │   ├── jsonl
+│   │   │   └── chapter1_sections.jsonl
+│   │   ├── manifests
+│   │   │   └── chapter1_manifest.csv
+│   │   └── sections
+│   │       └── chapter1
+│   │           ├── 001_introduction.txt
+│   │           ├── 002_acknowledgments.txt
+│   │           ├── 003_part_i_the_land.txt
+│   │           ├── 004_chapter_1_geographic_zones.txt
+│   │           ├── 005_1_1_climate_variability_precipitation_regimes.txt
+│   │           ├── 006_1_2_snowline_and_meltwater_hydrology.txt
+│   │           ├── 007_1_3_eleven_geographic_zones_framework.txt
+│   │           ├── 008_zone_1_wakhan_corridor_pamir_knot.txt
+│   │           ├── 009_zone_2_badakhshan.txt
+│   │           ├── 010_zone_3_central_mountains.txt
+│   │           ├── 011_zone_4_eastern_mountains.txt
+│   │           ├── 012_zone_5_northern_mountains_foothills.txt
+│   │           ├── 013_zone_6_southern_mountains_foothills.txt
+│   │           ├── 014_zone_7_turkestan_plains.txt
+│   │           ├── 015_zone_8_herat_farah_lowlands.txt
+│   │           ├── 016_zone_9_sistan_basin_hilmand_valley.txt
+│   │           ├── 017_zone_10_western_stony_deserts.txt
+│   │           ├── 018_zone_11_southwestern_sandy_deserts.txt
+│   │           ├── 019_map_2_geographic_zones.txt
+│   │           ├── 020_chart_1_climatic_charts.txt
+│   │           ├── 021_chart_2_natural_vegetation.txt
+│   │           └── 022_chart_3_natural_vegetation.txt
+│   ├── contents
+│   │   └── chapter1_outline_clean.csv
+│   ├── contents_v1
+│   │   ├── book1_chapters.csv
+│   │   ├── book2_chapters.csv
+│   │   └── book3_chapters.csv
+│   ├── csv
+│   │   └── contents
+│   ├── debate_out
+│   │   ├── debate_cast.mp3
+│   │   └── debate_cast.wav
+│   ├── latex_mm
+│   │   ├── book2c2
+│   │   │   ├── book2corpus2.aux
+│   │   │   ├── book2corpus2.log
+│   │   │   ├── book2corpus2.out
+│   │   │   ├── book2corpus2.pdf
+│   │   │   ├── book2corpus2.synctex.gz
+│   │   │   └── book2corpus2.tex
+│   │   ├── book2corpus2.mm
+│   │   └── causalcorpus
+│   │       ├── causalcorpus.aux
+│   │       ├── causalcorpus.log
+│   │       ├── causalcorpus.pdf
+│   │       ├── causalcorpus.synctex.gz
+│   │       └── causalcorpus.tex
+│   ├── local_books_v1
+│   │   ├── book1.pdf
+│   │   ├── book2.pdf
+│   │   └── book3.pdf
+│   └── pdf
+│       └── local_books
+├── pdf
+│   └── local_books
+│       ├── Hannah Arendt and Isaiah Berlin.pdf
+│       ├── Politics As Radical Creation _Marcuse and Hannah.pdf
+│       ├── The Human Condition (1958) -- Hannah Arendt.pdf
+│       └── The Space Of Appearance.pdf
+├── PROJECT_AUDIT_REPORT.md
+├── reports
+└── subcorpora_IR_template.ipynb
+
+59 directories, 129 files
+.
+├── architecture.txt
+├── book_subcorpora_builder_v6.py
+├── book_subcorpora_builder_v7.py
+├── causal_connection_greater_eurasia_bri.png
+├── chunks
+│   ├── jsonl
+│   ├── manifests
+│   └── sections
+├── contents
+├── Corpus_Applied_Model.mm
+├── corpusflowchart.png
+├── corpusknowledge1.mm
+├── Corpus_to_Deliverables.mm
+├── debate_cast_script.txt
+├── debate_cast_tts.py
+├── docs
+│   ├── ATTRIBUTES.md
+│   ├── DIRECTION_OF_REFINEMENT.md
+│   ├── IMPROVEMENT_ROADMAP.md
+│   ├── ONTOLOGICAL_BASIS.md
+│   └── PROJECT_AUDIT_REPORT.md
+├── local_books
+├── oldcode
+│   ├── book_subcorpora_builder_v5.py
+│   ├── debate_cast_tts.ipynb
+│   └── pdf_outline_to_csv.py
+├── otuput_dump
+│   ├── book1_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_05
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_06
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_07
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_08
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_09
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_10
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book2_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_05
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_06
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_07
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_08
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_09
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_10
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_11
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book3_subcorpora
+│   │   ├── chapter_01
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_02
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_03
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   ├── chapter_04
+│   │   │   ├── corpus.txt
+│   │   │   └── meta.json
+│   │   └── chapter_05
+│   │       ├── corpus.txt
+│   │       └── meta.json
+│   ├── book3_subcorpora_outputs
+│   │   ├── chapter_clusters_kmeans_compound.csv
+│   │   ├── chapters_overview.csv
+│   │   ├── chapter_summary_compound.csv
+│   │   ├── chapter_summary_words.csv
+│   │   ├── chapter_topics_nmf_compound.csv
+│   │   ├── chapter_top_terms_compound.csv
+│   │   ├── chapter_top_terms_words.csv
+│   │   ├── paragraphs_enriched_compound.csv
+│   │   └── paragraphs_raw.csv
+│   ├── chunks
+│   │   ├── jsonl
+│   │   │   └── chapter1_sections.jsonl
+│   │   ├── manifests
+│   │   │   └── chapter1_manifest.csv
+│   │   └── sections
+│   │       └── chapter1
+│   │           ├── 001_introduction.txt
+│   │           ├── 002_acknowledgments.txt
+│   │           ├── 003_part_i_the_land.txt
+│   │           ├── 004_chapter_1_geographic_zones.txt
+│   │           ├── 005_1_1_climate_variability_precipitation_regimes.txt
+│   │           ├── 006_1_2_snowline_and_meltwater_hydrology.txt
+│   │           ├── 007_1_3_eleven_geographic_zones_framework.txt
+│   │           ├── 008_zone_1_wakhan_corridor_pamir_knot.txt
+│   │           ├── 009_zone_2_badakhshan.txt
+│   │           ├── 010_zone_3_central_mountains.txt
+│   │           ├── 011_zone_4_eastern_mountains.txt
+│   │           ├── 012_zone_5_northern_mountains_foothills.txt
+│   │           ├── 013_zone_6_southern_mountains_foothills.txt
+│   │           ├── 014_zone_7_turkestan_plains.txt
+│   │           ├── 015_zone_8_herat_farah_lowlands.txt
+│   │           ├── 016_zone_9_sistan_basin_hilmand_valley.txt
+│   │           ├── 017_zone_10_western_stony_deserts.txt
+│   │           ├── 018_zone_11_southwestern_sandy_deserts.txt
+│   │           ├── 019_map_2_geographic_zones.txt
+│   │           ├── 020_chart_1_climatic_charts.txt
+│   │           ├── 021_chart_2_natural_vegetation.txt
+│   │           └── 022_chart_3_natural_vegetation.txt
+│   ├── contents
+│   │   └── chapter1_outline_clean.csv
+│   ├── contents_v1
+│   │   ├── book1_chapters.csv
+│   │   ├── book2_chapters.csv
+│   │   └── book3_chapters.csv
+│   ├── csv
+│   │   └── contents
+│   ├── debate_out
+│   │   ├── debate_cast.mp3
+│   │   └── debate_cast.wav
+│   ├── latex_mm
+│   │   ├── book2c2
+│   │   │   ├── book2corpus2.aux
+│   │   │   ├── book2corpus2.log
+│   │   │   ├── book2corpus2.out
+│   │   │   ├── book2corpus2.pdf
+│   │   │   ├── book2corpus2.synctex.gz
+│   │   │   └── book2corpus2.tex
+│   │   ├── book2corpus2.mm
+│   │   └── causalcorpus
+│   │       ├── causalcorpus.aux
+│   │       ├── causalcorpus.log
+│   │       ├── causalcorpus.pdf
+│   │       ├── causalcorpus.synctex.gz
+│   │       └── causalcorpus.tex
+│   ├── local_books_v1
+│   │   ├── book1.pdf
+│   │   ├── book2.pdf
+│   │   └── book3.pdf
+│   └── pdf
+│       └── local_books
+├── pdf
+│   └── local_books
+│       ├── Hannah Arendt and Isaiah Berlin.pdf
+│       ├── Politics As Radical Creation _Marcuse and Hannah.pdf
+│       ├── The Human Condition (1958) -- Hannah Arendt.pdf
+│       └── The Space Of Appearance.pdf
+├── reports
+│   └── BOOKCORPUSBUILDER_Technical_Assessment_2026-08-03.md
+└── subcorpora_IR_template.ipynb
+
+59 directories, 130 files

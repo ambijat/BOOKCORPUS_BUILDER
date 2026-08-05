@@ -1,0 +1,715 @@
+{
+  "$defs": {
+    "ApprovalState": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "draft",
+            "reviewed",
+            "approved",
+            "revoked"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approved At"
+        },
+        "approved_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approved By"
+        },
+        "outline_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outline Sha256"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "ApprovalState",
+      "type": "object"
+    },
+    "Boundary": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/BoundaryStatus"
+        },
+        "basis": {
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        },
+        "end_inference": {
+          "default": "next_included_entry",
+          "enum": [
+            "next_included_entry",
+            "explicit_end",
+            "chapter_end",
+            "unknown"
+          ],
+          "title": "End Inference",
+          "type": "string"
+        },
+        "allow_extraction": {
+          "default": false,
+          "title": "Allow Extraction",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "status",
+        "basis"
+      ],
+      "title": "Boundary",
+      "type": "object"
+    },
+    "BoundaryStatus": {
+      "enum": [
+        "proposed",
+        "verified_printed",
+        "verified_physical",
+        "rejected"
+      ],
+      "title": "BoundaryStatus",
+      "type": "string"
+    },
+    "DocumentMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "book_id": {
+          "minLength": 1,
+          "title": "Book Id",
+          "type": "string"
+        },
+        "pdf_filename": {
+          "minLength": 1,
+          "title": "Pdf Filename",
+          "type": "string"
+        },
+        "pdf_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdf Sha256"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "subtitle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subtitle"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "total_pdf_pages": {
+          "minimum": 1,
+          "title": "Total Pdf Pages",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "book_id",
+        "pdf_filename",
+        "title",
+        "total_pdf_pages"
+      ],
+      "title": "DocumentMetadata",
+      "type": "object"
+    },
+    "EntryKind": {
+      "enum": [
+        "part",
+        "chapter",
+        "section",
+        "subsection",
+        "analytical_section",
+        "preface",
+        "introduction",
+        "appendix",
+        "notes",
+        "bibliography",
+        "index",
+        "caption",
+        "topic",
+        "glossary",
+        "acknowledgement",
+        "other"
+      ],
+      "title": "EntryKind",
+      "type": "string"
+    },
+    "GenerationMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "enum": [
+            "human_curated",
+            "deterministic_parser",
+            "ollama_structured",
+            "hybrid"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "generator": {
+          "minLength": 1,
+          "title": "Generator",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "generated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generated At"
+        },
+        "source_scope": {
+          "minLength": 1,
+          "title": "Source Scope",
+          "type": "string"
+        },
+        "source_pages": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcePages"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prompt_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Version"
+        }
+      },
+      "required": [
+        "method",
+        "generator",
+        "source_scope"
+      ],
+      "title": "GenerationMetadata",
+      "type": "object"
+    },
+    "NumberingSystem": {
+      "enum": [
+        "arabic",
+        "roman_lower",
+        "roman_upper",
+        "unnumbered"
+      ],
+      "title": "NumberingSystem",
+      "type": "string"
+    },
+    "OutlineContractEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_id": {
+          "minLength": 1,
+          "title": "Entry Id",
+          "type": "string"
+        },
+        "sno": {
+          "minLength": 1,
+          "title": "Sno",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EntryKind"
+        },
+        "level": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "parent_entry_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Entry Id"
+        },
+        "parent_sno": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Sno"
+        },
+        "printed_start": {
+          "$ref": "#/$defs/PrintedPage"
+        },
+        "physical_start": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physical Start"
+        },
+        "pdf_page_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdf Page Index"
+        },
+        "boundary": {
+          "$ref": "#/$defs/Boundary"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "include": {
+          "default": true,
+          "title": "Include",
+          "type": "boolean"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "entry_id",
+        "sno",
+        "title",
+        "kind",
+        "level",
+        "printed_start",
+        "boundary",
+        "provenance",
+        "quality"
+      ],
+      "title": "OutlineContractEntry",
+      "type": "object"
+    },
+    "PaginationMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "printed_to_physical_mapping_status": {
+          "enum": [
+            "unresolved",
+            "provisional",
+            "verified"
+          ],
+          "title": "Printed To Physical Mapping Status",
+          "type": "string"
+        },
+        "default_offset": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Offset"
+        },
+        "mapping_sidecar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mapping Sidecar"
+        }
+      },
+      "required": [
+        "printed_to_physical_mapping_status"
+      ],
+      "title": "PaginationMetadata",
+      "type": "object"
+    },
+    "PrintedPage": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "numeric": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numeric"
+        },
+        "numbering_system": {
+          "$ref": "#/$defs/NumberingSystem",
+          "default": "unnumbered"
+        }
+      },
+      "title": "PrintedPage",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "source_type": {
+          "enum": [
+            "printed_toc",
+            "printed_heading",
+            "pdf_bookmark",
+            "analytical_derivation",
+            "ollama_candidate",
+            "manual",
+            "csv_import",
+            "json_import"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "source_page_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Page Label"
+        },
+        "source_pdf_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Pdf Index"
+        },
+        "raw_source_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Source Text"
+        },
+        "analytical_or_verbatim": {
+          "enum": [
+            "verbatim",
+            "analytical",
+            "mixed"
+          ],
+          "title": "Analytical Or Verbatim",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_type",
+        "analytical_or_verbatim"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Quality": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "review_status": {
+          "$ref": "#/$defs/ReviewStatus"
+        },
+        "warning_codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warning Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "confidence",
+        "review_status"
+      ],
+      "title": "Quality",
+      "type": "object"
+    },
+    "ReviewStatus": {
+      "enum": [
+        "candidate",
+        "reviewed",
+        "approved",
+        "rejected"
+      ],
+      "title": "ReviewStatus",
+      "type": "string"
+    },
+    "SourcePages": {
+      "additionalProperties": false,
+      "properties": {
+        "from_pdf_index": {
+          "minimum": 0,
+          "title": "From Pdf Index",
+          "type": "integer"
+        },
+        "to_pdf_index": {
+          "minimum": 0,
+          "title": "To Pdf Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "from_pdf_index",
+        "to_pdf_index"
+      ],
+      "title": "SourcePages",
+      "type": "object"
+    },
+    "ValidationState": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "not_validated",
+            "valid",
+            "invalid"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "validated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Validated At"
+        },
+        "validator_version": {
+          "title": "Validator Version",
+          "type": "string"
+        },
+        "errors": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "validator_version"
+      ],
+      "title": "ValidationState",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "const": "book_outline_contract",
+      "title": "Schema Name",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "document": {
+      "$ref": "#/$defs/DocumentMetadata"
+    },
+    "generation": {
+      "$ref": "#/$defs/GenerationMetadata"
+    },
+    "pagination": {
+      "$ref": "#/$defs/PaginationMetadata"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/OutlineContractEntry"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "validation": {
+      "$ref": "#/$defs/ValidationState"
+    },
+    "approval": {
+      "$ref": "#/$defs/ApprovalState"
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "document",
+    "generation",
+    "pagination",
+    "entries",
+    "validation",
+    "approval"
+  ],
+  "title": "BookOutlineContract",
+  "type": "object"
+}

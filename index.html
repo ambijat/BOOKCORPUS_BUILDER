@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BOOKCORPUSBUILDER converts scholarly PDF books into governed, page-aligned, auditable section corpora.">
+  <meta name="theme-color" content="#17223b">
+  <title>BOOKCORPUSBUILDER — Governed PDF-to-Corpus Workbench</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317223b'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' font-weight='bold' fill='%23b06a2b' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BOOKCORPUSBUILDER — Governed PDF-to-Corpus Workbench">
+  <meta property="og:description" content="BOOKCORPUSBUILDER converts scholarly PDF books into governed, page-aligned, auditable section corpora.">
+  <meta property="og:url" content="https://ambijat.github.io/BOOKCORPUS_BUILDER/">
+  <meta property="og:site_name" content="BOOKCORPUSBUILDER">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="BOOKCORPUSBUILDER — Governed PDF-to-Corpus Workbench">
+  <meta name="twitter:description" content="BOOKCORPUSBUILDER converts scholarly PDF books into governed, page-aligned, auditable section corpora.">
+  <style>
+    :root {
+      --ink: #17223b;
+      --muted: #5f6b7a;
+      --paper: #f6f7f9;
+      --card: #ffffff;
+      --line: #dce1e8;
+      --accent: #b06a2b;
+      --accent-dark: #7c4518;
+      --success: #1e6b4f;
+      --soft: #eef1f5;
+      --shadow: 0 16px 40px rgba(23, 34, 59, 0.10);
+      --radius: 18px;
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 85% 5%, rgba(176, 106, 43, 0.12), transparent 24rem),
+        linear-gradient(180deg, #fbfbfc 0%, var(--paper) 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    a { color: var(--accent-dark); }
+    a:hover { color: var(--accent); }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--max));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(220, 225, 232, 0.85);
+      background: rgba(251, 251, 252, 0.92);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .brand {
+      color: var(--ink);
+      font-weight: 850;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.94rem;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .hero {
+      padding: 6.5rem 0 4.5rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(176, 106, 43, 0.28);
+      border-radius: 999px;
+      color: var(--accent-dark);
+      background: rgba(176, 106, 43, 0.08);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 1.25rem 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.75rem, 7vw, 5.6rem);
+      letter-spacing: -0.045em;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .lead {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(1.08rem, 2vw, 1.35rem);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0.72rem 1rem;
+      border: 1px solid var(--ink);
+      border-radius: 10px;
+      color: #fff;
+      background: var(--ink);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .button.secondary {
+      color: var(--ink);
+      background: transparent;
+    }
+
+    .release-card {
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .release-card dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.65rem 1rem;
+      margin: 0;
+    }
+
+    .release-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .release-card dd {
+      margin: 0;
+      font-weight: 850;
+    }
+
+    .status {
+      color: var(--success);
+    }
+
+    section { padding: 4rem 0; }
+
+    .section-head {
+      max-width: 780px;
+      margin-bottom: 2rem;
+    }
+
+    .section-head h2 {
+      margin: 0 0 0.85rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      letter-spacing: -0.03em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.35rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: 0 8px 24px rgba(23, 34, 59, 0.05);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    .card p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      gap: 0.7rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .step {
+      min-width: 130px;
+      padding: 1rem;
+      border-top: 4px solid var(--accent);
+      border-radius: 8px 8px 12px 12px;
+      background: var(--card);
+      box-shadow: 0 8px 20px rgba(23, 34, 59, 0.05);
+    }
+
+    .step small {
+      display: block;
+      margin-bottom: 0.4rem;
+      color: var(--accent-dark);
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .step strong {
+      display: block;
+      line-height: 1.3;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .principle {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .principle b {
+      flex: 0 0 2rem;
+      color: var(--accent);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.35rem;
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .doc-link {
+      display: block;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: var(--card);
+      text-decoration: none;
+    }
+
+    .doc-link:hover {
+      border-color: rgba(176, 106, 43, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .doc-link strong { display: block; }
+    .doc-link span {
+      display: block;
+      margin-top: 0.25rem;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .notice {
+      padding: 1.25rem 1.4rem;
+      border-left: 5px solid var(--accent);
+      background: #fff8f0;
+      border-radius: 0 12px 12px 0;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 1.1rem;
+      border: 1px solid #26334e;
+      border-radius: 12px;
+      color: #ecf2ff;
+      background: #17223b;
+      font-size: 0.92rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding: 2.5rem 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid, .principles { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr 1fr; }
+      .docs-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 620px) {
+      .hero { padding-top: 4.5rem; }
+      .cards { grid-template-columns: 1fr; }
+      h1 { font-size: 2.7rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#top">BOOKCORPUS<span>BUILDER</span></a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#capabilities">Capabilities</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#philosophy">Philosophy</a>
+        <a href="#documentation">Documentation</a>
+        <a href="#install">Install</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Local-first · human-governed · auditable</span>
+          <h1>Turn scholarly books into <em>trusted section corpora.</em></h1>
+          <p class="lead">
+            BOOKCORPUSBUILDER is a PySide6 desktop workbench for converting PDF books
+            into reviewed, page-aligned, provenance-tracked text, JSONL, and manifest outputs.
+            Automation assists; the operator remains the approval authority.
+          </p>
+          <div class="actions">
+            <a class="button" href="docs/OPERATOR_MANUAL.md">Read the Operator Manual</a>
+            <a class="button secondary" href="https://github.com/ambijat/BOOKCORPUS_BUILDER">View Repository</a>
+          </div>
+        </div>
+
+        <aside class="release-card" aria-label="Release status">
+          <h2>Release baseline</h2>
+          <dl>
+            <dt>Version</dt><dd>1.0.0-rc1</dd>
+            <dt>Phase</dt><dd>Phase 3 — Maintenance</dd>
+            <dt>Development model</dt><dd>Versioned evolution</dd>
+            <dt>Interface</dt><dd>Seven workspaces</dd>
+            <dt>Outline contract</dt><dd>v1.0.0</dd>
+            <dt>Architecture</dt><dd class="status">Frozen at v1.0</dd>
+            <dt>Source model</dt><dd>Local-first</dd>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <section id="capabilities">
+      <div class="container">
+        <div class="section-head">
+          <h2>A governed document-processing system</h2>
+          <p>
+            The application solves the difficult part of corpus building: maintaining the
+            distinction between source structure, printed pagination, physical PDF position,
+            operator approval, and extraction authority.
+          </p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <h3>Human-reviewable outlines</h3>
+            <p>Paste, import, detect, or manually construct a candidate outline, then review and approve it before use.</p>
+          </article>
+          <article class="card">
+            <h3>Verified page alignment</h3>
+            <p>Map printed page labels to physical PDF pages using operator-checked anchors and explicit exceptions.</p>
+          </article>
+          <article class="card">
+            <h3>Controlled extraction</h3>
+            <p>Extraction remains blocked until the outline and mapping have passed deterministic preflight checks.</p>
+          </article>
+          <article class="card">
+            <h3>Auditable deliverables</h3>
+            <p>Create run-scoped UTF-8 text files, JSONL records, manifests, hashes, and immutable execution history.</p>
+          </article>
+          <article class="card">
+            <h3>Local corpus search</h3>
+            <p>Search extracted sections locally and trace results back to the source PDF and generated outputs.</p>
+          </article>
+          <article class="card">
+            <h3>Optional local assistance</h3>
+            <p>Local Ollama may propose schema-constrained candidates, but cannot approve, map, or extract.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <div class="container">
+        <div class="section-head">
+          <h2>The accepted operator workflow</h2>
+          <p>Every transition that could silently damage provenance is an explicit, reviewable stage.</p>
+        </div>
+
+        <div class="workflow" aria-label="Seven-workspace workflow">
+          <div class="step"><small>01</small><strong>Library</strong></div>
+          <div class="step"><small>02</small><strong>Structure Builder</strong></div>
+          <div class="step"><small>03</small><strong>Page Alignment</strong></div>
+          <div class="step"><small>04</small><strong>Extract</strong></div>
+          <div class="step"><small>05</small><strong>Corpus Browser</strong></div>
+          <div class="step"><small>06</small><strong>Run History</strong></div>
+          <div class="step"><small>07</small><strong>Settings</strong></div>
+        </div>
+
+        <div class="notice" style="margin-top: 1.5rem;">
+          <strong>Safety rule:</strong> a generated or imported heading is not automatically
+          an extraction boundary. Approval and verified page mapping are mandatory.
+        </div>
+      </div>
+    </section>
+
+    <section id="philosophy">
+      <div class="container">
+        <div class="section-head">
+          <h2>Engineering philosophy</h2>
+          <p>The v1.0 baseline was produced through bounded refinement, regression preservation, real-GUI verification, governance, audit, and release review.</p>
+        </div>
+
+        <div class="principles">
+          <div>
+            <div class="principle"><b>01</b><span><strong>Inspect before modifying.</strong><br>Understand the existing mechanism and its contract before intervention.</span></div>
+            <div class="principle"><b>02</b><span><strong>Reuse before inventing.</strong><br>Prefer established services, models, and interaction patterns.</span></div>
+            <div class="principle"><b>03</b><span><strong>Preserve behaviour.</strong><br>Changes are bounded unless a behavioural change is explicitly authorized.</span></div>
+            <div class="principle"><b>04</b><span><strong>Verify the real interface.</strong><br>GUI claims require real-GUI evidence, not code inspection alone.</span></div>
+          </div>
+          <div>
+            <div class="principle"><b>05</b><span><strong>Regress after every change.</strong><br>Tests preserve accepted behaviour and prevent repaired defects from returning.</span></div>
+            <div class="principle"><b>06</b><span><strong>Governance over convenience.</strong><br>Frozen architecture and approval boundaries are engineering controls.</span></div>
+            <div class="principle"><b>07</b><span><strong>Synchronize documentation.</strong><br>Manuals, governance, issues, and release records are part of the product.</span></div>
+            <div class="principle"><b>08</b><span><strong>Audit before release.</strong><br>Product quality and release-process quality are assessed separately.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="documentation">
+      <div class="container">
+        <div class="section-head">
+          <h2>Authoritative project documents</h2>
+          <p>This page is an orientation layer. Repository documents remain the authoritative operational and governance record.</p>
+        </div>
+
+        <div class="docs-grid">
+          <a class="doc-link" href="docs/OPERATOR_MANUAL.md">
+            <strong>Operator Manual</strong>
+            <span>Complete seven-workspace procedure, safety controls, troubleshooting, and daily checklist.</span>
+          </a>
+          <a class="doc-link" href="docs/BOOKCORPUSBUILDER_Brochure.md">
+            <strong>Product Brochure</strong>
+            <span>Concise capabilities, use cases, contract model, and verified demonstration.</span>
+          </a>
+          <a class="doc-link" href="docs/DEVELOPER_HANDOVER.md">
+            <strong>Developer Handover</strong>
+            <span>Architecture orientation, frozen components, extension points, and contributor guidance.</span>
+          </a>
+          <a class="doc-link" href="docs/GOVERNANCE.md">
+            <strong>Governance</strong>
+            <span>Normative v1 change rules, architectural freeze, feature acceptance, and lifecycle controls.</span>
+          </a>
+          <a class="doc-link" href="docs/UX_SPRINT_SUMMARY.md">
+            <strong>UX Sprint Summary</strong>
+            <span>Accepted outcomes from the completed eighteen-sprint maturation programme.</span>
+          </a>
+          <a class="doc-link" href="docs/RETROSPECTIVE_ENGINEERING_REPORT.md">
+            <strong>Engineering Retrospective</strong>
+            <span>What worked, what failed, what was deferred, and what future programmes should change.</span>
+          </a>
+          <a class="doc-link" href="KNOWN_ISSUES.md">
+            <strong>Known Issues</strong>
+            <span>Intentional limitations, deferred debt, and release-visible constraints.</span>
+          </a>
+          <a class="doc-link" href="RELEASE_CANDIDATE_REPORT.md">
+            <strong>Release Candidate Report</strong>
+            <span>Independent release audit, verification evidence, and final recommendation.</span>
+          </a>
+          <a class="doc-link" href="RELEASE_CHECKLIST.md">
+            <strong>Release Checklist</strong>
+            <span>Item-by-item release readiness and publication control.</span>
+          </a>
+          <a class="doc-link" href="docs/ARCHITECTURE.md">
+            <strong>Architecture</strong>
+            <span>Repository structure, data boundaries, services, and directory contract.</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="container">
+        <div class="section-head">
+          <h2>Install and launch</h2>
+          <p>Python 3.10 or newer is required. Install the GUI extra in a fresh virtual environment.</p>
+        </div>
+
+        <pre><code>git clone https://github.com/ambijat/BOOKCORPUS_BUILDER.git
+cd BOOKCORPUS_BUILDER
+
+python3 -m venv .venv
+.venv/bin/pip install -e '.[gui]'
+.venv/bin/bookcorpus-gui</code></pre>
+
+        <p>
+          Optional analysis, text-to-speech, development, and local Ollama integrations
+          are documented in <a href="README.md">README.md</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <span>BOOKCORPUSBUILDER · v1.0.0-rc1</span>
+      <span>Schema authority: Python · Validation authority: deterministic services · Approval authority: human operator</span>
+    </div>
+  </footer>
+</body>
+</html>
