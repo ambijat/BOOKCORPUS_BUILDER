@@ -26,12 +26,20 @@ class CorpusSearchService:
                     continue
                 if printed_to is not None and (printed is None or printed > printed_to):
                     continue
-                haystack = f"{item.get('title', '')}\n{item.get('text', '')}"
-                position = haystack.casefold().find(needle) if needle else 0
+                title = item.get("title", "")
+                body = item.get("text", "")
+                position = f"{title}\n{body}".casefold().find(needle) if needle else 0
                 if position < 0:
                     continue
-                start = max(0, position - 80)
-                item["snippet"] = haystack[start:position + max(len(query), 1) + 120].replace("\n", " ")
+                # The preview snippet is built from the body only, never the title -- the
+                # title is already shown as the row's own heading, so pulling it into the
+                # snippet too (as the old title+text haystack did) made every row look like
+                # its title was duplicated underneath itself.
+                body_position = body.casefold().find(needle) if needle else 0
+                if body_position < 0:
+                    body_position = 0
+                start = max(0, body_position - 80)
+                item["snippet"] = body[start:body_position + max(len(query), 1) + 120].replace("\n", " ")
                 item["jsonl_path"] = str(path)
                 section_dir = path.parents[1] / "sections" / item.get("book_id", "")
                 matches = list(section_dir.glob(f"{int(item.get('sno', 0)):03d}_*.txt"))

@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QFormLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
     QDialog, QDialogButtonBox, QGroupBox, QMainWindow, QMessageBox, QPlainTextEdit, QProgressBar, QPushButton, QListWidgetItem, QInputDialog,
     QSpinBox, QSplitter, QStackedWidget, QStyle, QTableWidget, QTableWidgetItem,
-    QTabWidget, QTextEdit, QVBoxLayout, QWidget,
+    QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
 from ..paths import INPUT_PDF_DIR, OUTLINE_DIR, OUTPUT_DIR, PROJECT_ROOT
@@ -975,24 +975,70 @@ class ExtractScreen(Screen):
 class BrowserScreen(Screen):
     def __init__(self, window):
         super().__init__(window)
+        # ---- shared run selector: run metadata lives outside both the outline tree and
+        # the search results list, since neither one is "per run" (the outline is the
+        # book's approved structure; the run only decides which extraction fills it in).
+        self.run_filter = QComboBox(); self.run_filter.addItem("All runs", "")
+        self.run_filter.currentIndexChanged.connect(self._run_selected)
+        run_label = QLabel("Run"); run_label.setBuddy(self.run_filter)
+        run_row = QHBoxLayout(); run_row.addWidget(run_label); run_row.addWidget(self.run_filter, 1)
+
+        # ---- Outline tab: a pure sno+title tree over the approved outline records.
+        self.outline_filter = QLineEdit(); self.outline_filter.setPlaceholderText("Filter outline titles…")
+        self.outline_filter.textChanged.connect(self._apply_outline_filter)
+        self.outline_tree = QTreeWidget()
+        self.outline_tree.setColumnCount(2)
+        self.outline_tree.setHeaderLabels(["Sno", "Title"])
+        self.outline_tree.setColumnWidth(0, 56)
+        self.outline_tree.header().setStretchLastSection(True)
+        self.outline_tree.currentItemChanged.connect(self._outline_selection_changed)
+        self.outline_tree.itemExpanded.connect(lambda item: self._set_expand_state(item, True))
+        self.outline_tree.itemCollapsed.connect(lambda item: self._set_expand_state(item, False))
+        self.outline_empty_label = QLabel("Select a book with an approved outline to browse its structure.")
+        self.outline_empty_label.setWordWrap(True)
+        self.outline_empty_label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        outline_tab = QWidget(); outline_layout = QVBoxLayout(outline_tab); outline_layout.setContentsMargins(0, 0, 0, 0)
+        outline_layout.addWidget(self.outline_filter); outline_layout.addWidget(self.outline_empty_label); outline_layout.addWidget(self.outline_tree)
+
+        # ---- Full-text Search tab: unchanged text/kind/page search over extracted JSONL.
         self.query = QLineEdit(); self.query.setPlaceholderText("Search section titles and full text…"); self.query.returnPressed.connect(self.search)
         self.kind = QComboBox(); self.kind.addItem("All kinds", "")
         for entry_kind in sorted(KINDS): self.kind.addItem(entry_kind.title(), entry_kind)
-        self.run_filter = QComboBox(); self.run_filter.addItem("All runs", "")
         self.page_from = QSpinBox(); self.page_from.setRange(0, 100000); self.page_from.setSpecialValueText("Any page")
         self.page_to = QSpinBox(); self.page_to.setRange(0, 100000); self.page_to.setSpecialValueText("Any page")
         button = QPushButton("Search"); button.clicked.connect(self.search)
         clear_search = QPushButton("Clear Search"); clear_search.clicked.connect(self.clear_search)
-        copy = QPushButton("Copy Text"); copy.clicked.connect(lambda: QApplication.clipboard().setText(self.text.toPlainText()))
         self.results = QListWidget(); self.results.currentRowChanged.connect(self.show_result)
+        filters = QHBoxLayout()
+        # QFormLayout.addRow(str, widget) auto-assigns a label's buddy; these two labels
+        # sit in a plain QHBoxLayout instead, so the buddy has to be set explicitly for
+        # the same keyboard/screen-reader association (Sprint 14, requirement #8).
+        printed_from_label = QLabel("Printed from"); printed_from_label.setBuddy(self.page_from)
+        printed_to_label = QLabel("to"); printed_to_label.setBuddy(self.page_to)
+        for widget in (self.query, self.kind, printed_from_label, self.page_from, printed_to_label, self.page_to, button, clear_search): filters.addWidget(widget)
+        self.empty_label = QLabel("No completed extractions yet. Extract a book from Workspace 4 — its corpus will appear here automatically.")
+        self.empty_label.setWordWrap(True)
+        self.empty_label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.search_summary = QLabel(""); self.search_summary.setWordWrap(True); self.search_summary.setTextFormat(Qt.RichText)
+        search_tab = QWidget(); search_layout = QVBoxLayout(search_tab); search_layout.setContentsMargins(0, 0, 0, 0)
+        search_layout.addLayout(filters); search_layout.addWidget(self.search_summary)
+        search_layout.addWidget(self.empty_label); search_layout.addWidget(self.results)
+
+        self.left_tabs = QTabWidget()
+        self.left_tabs.addTab(outline_tab, "Outline")
+        self.left_tabs.addTab(search_tab, "Full-text Search")
+        self.left_tabs.currentChanged.connect(self._tab_changed)
+
+        # ---- shared centre/right panels: whichever tab is active drives these.
+        copy = QPushButton("Copy Text"); copy.clicked.connect(lambda: QApplication.clipboard().setText(self.text.toPlainText()))
         self.text = QTextEdit(); self.text.setReadOnly(True)
         self.text.document().setDocumentMargin(28)
         self.text.setFont(QFont(self.text.font().family(), 12))
         self.metadata = QLabel(); self.metadata.setWordWrap(True); self.metadata.setTextFormat(Qt.RichText)
-        self.prev_button = QPushButton("◀ Previous Section")
-        self.prev_button.clicked.connect(lambda: self.results.setCurrentRow(self.results.currentRow() - 1))
-        self.next_button = QPushButton("Next Section ▶")
-        self.next_button.clicked.connect(lambda: self.results.setCurrentRow(self.results.currentRow() + 1))
+        self.prev_button = QPushButton("◀ Previous")
+        self.prev_button.clicked.connect(self._nav_prev)
+        self.next_button = QPushButton("Next ▶")
+        self.next_button.clicked.connect(self._nav_next)
         self.reading_status = QLabel("")
         self.reading_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         nav_row = QHBoxLayout()
@@ -1003,21 +1049,11 @@ class BrowserScreen(Screen):
         export = QPushButton("Export Results"); export.clicked.connect(self.export_results)
         open_pdf = QPushButton("Open Source PDF"); open_pdf.clicked.connect(lambda: open_path(self.book.path) if self.book else None)
         reveal = QPushButton("Reveal Output"); reveal.clicked.connect(self.reveal)
-        filters = QHBoxLayout()
-        # QFormLayout.addRow(str, widget) auto-assigns a label's buddy; these two labels
-        # sit in a plain QHBoxLayout instead, so the buddy has to be set explicitly for
-        # the same keyboard/screen-reader association (Sprint 14, requirement #8).
-        printed_from_label = QLabel("Printed from"); printed_from_label.setBuddy(self.page_from)
-        printed_to_label = QLabel("to"); printed_to_label.setBuddy(self.page_to)
-        for widget in (self.query, self.kind, self.run_filter, printed_from_label, self.page_from, printed_to_label, self.page_to, button, clear_search): filters.addWidget(widget)
         actions = QHBoxLayout()
         for widget in (copy, open_text, open_jsonl, open_manifest, open_pdf, export, reveal): actions.addWidget(widget)
-        self.empty_label = QLabel("No completed extractions yet. Extract a book from Workspace 4 — its corpus will appear here automatically.")
-        self.empty_label.setWordWrap(True)
-        self.empty_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.search_summary = QLabel(""); self.search_summary.setWordWrap(True); self.search_summary.setTextFormat(Qt.RichText)
+
         left = QWidget(); left_layout = QVBoxLayout(left); left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.addWidget(self.search_summary); left_layout.addWidget(self.empty_label); left_layout.addWidget(self.results)
+        left_layout.addLayout(run_row); left_layout.addWidget(self.left_tabs)
         split = QSplitter(); split.addWidget(left)
         right = QWidget(); right_layout = QVBoxLayout(right)
         right_layout.addWidget(self.metadata); right_layout.addLayout(nav_row); right_layout.addWidget(self.text)
@@ -1025,10 +1061,16 @@ class BrowserScreen(Screen):
         self.preview = PdfTextPreview()
         split.addWidget(self.preview)
         configure_splitter(split, self.window, "browser.results", [380, 700, 700])
-        layout = QVBoxLayout(self); layout.addLayout(filters); layout.addLayout(actions); layout.addWidget(split)
+        layout = QVBoxLayout(self); layout.addLayout(actions); layout.addWidget(split)
+
         self.items = []
+        self.outline_entries: list[OutlineEntry] = []
+        self._sno_to_item: dict[int, QTreeWidgetItem] = {}
+        self._sno_to_record: dict[int, dict] = {}
+        self._expand_state: dict[str, dict[int, bool]] = {}
+        self.current_entry: OutlineEntry | None = None
+        self.current_content: dict | None = None
         self._preview_book_id = None
-        self.run_filter.currentIndexChanged.connect(self._run_selected)
 
     def selection_changed(self):
         self.run_filter.blockSignals(True)
@@ -1044,12 +1086,220 @@ class BrowserScreen(Screen):
         self.run_filter.blockSignals(False)
         if not self.book:
             self.metadata.setText("Showing completed extractions across all books.")
+        self._load_run_sections()
+        self._populate_outline()
         self.search()
 
     def _run_selected(self):
         self.window.services.settings.ui_layouts["browser.last_run"] = self.run_filter.currentData() or ""
         self.window.services.settings_service.save(self.window.services.settings)
+        self._load_run_sections()
         self.search()
+        if self.current_entry is not None:
+            self.current_content = self._sno_to_record.get(self.current_entry.sno)
+            if self.left_tabs.currentIndex() == 0:
+                self._render_outline_current()
+
+    def _load_run_sections(self) -> None:
+        """Looks up the currently selected run's extracted JSONL for the current book, keyed
+        by sno, so the outline tree can show each node's extracted text without itself being
+        built from (or duplicating) any search/extraction record."""
+        self._sno_to_record = {}
+        run_id = self.run_filter.currentData()
+        book = self.book
+        if not run_id or not book:
+            return
+        jsonl_path = self.window.services.output_dir / "runs" / run_id / "jsonl" / f"{book.book_id}_sections.jsonl"
+        if not jsonl_path.exists():
+            return
+        section_dir = jsonl_path.parents[1] / "sections" / book.book_id
+        for line in jsonl_path.read_text(encoding="utf-8").splitlines():
+            record = json.loads(line)
+            record["jsonl_path"] = str(jsonl_path)
+            matches = list(section_dir.glob(f"{int(record.get('sno', 0)):03d}_*.txt"))
+            record["txt_path"] = str(matches[0]) if matches else ""
+            self._sno_to_record[record.get("sno")] = record
+
+    # ---- Outline tab -------------------------------------------------------------
+
+    def _populate_outline(self) -> None:
+        """Builds the outline tree exclusively from the book's approved outline records
+        (never from search/extraction results), nesting level 1/2/3 entries in source
+        order via a level-stack -- the same nesting rule a table of contents uses, and
+        the one field (`level`) every outline-creation path already fills in."""
+        self.outline_tree.blockSignals(True)
+        self.outline_tree.clear()
+        self._sno_to_item = {}
+        self.outline_entries = []
+        book = self.book
+        if book:
+            approval = self.window.services.outlines.approval(book.book_id)
+            if approval and approval.approved:
+                _, clean, _ = self.window.services.outlines.paths(book.book_id)
+                if clean.exists():
+                    self.outline_entries = self.window.services.outlines.load(clean)
+        stack: list[tuple[int, QTreeWidgetItem]] = []
+        for entry in self.outline_entries:
+            level = max(1, min(entry.level or 1, 3))
+            while stack and stack[-1][0] >= level:
+                stack.pop()
+            parent_item = stack[-1][1] if stack else self.outline_tree.invisibleRootItem()
+            item = QTreeWidgetItem()
+            item.setText(0, str(entry.sno)); item.setText(1, entry.title)
+            item.setToolTip(1, entry.title)
+            item.setData(0, Qt.ItemDataRole.UserRole, entry)
+            parent_item.addChild(item)
+            self._sno_to_item[entry.sno] = item
+            stack.append((level, item))
+        self.outline_tree.blockSignals(False)
+        self._apply_expand_state()
+        if self.outline_entries:
+            self.outline_empty_label.setVisible(False)
+            self.outline_tree.setCurrentItem(self.outline_tree.topLevelItem(0))
+        else:
+            self.outline_empty_label.setText(
+                "Select a book with an approved outline to browse its structure."
+                if not book else "This book has no approved outline yet."
+            )
+            self.outline_empty_label.setVisible(True)
+            self.outline_tree.setCurrentItem(None)
+            self.current_entry = None; self.current_content = None
+            if self.left_tabs.currentIndex() == 0:
+                self._render_outline_current()
+
+    def _apply_expand_state(self) -> None:
+        book_id = self.book.book_id if self.book else None
+        state = self._expand_state.get(book_id, {}) if book_id else {}
+
+        def recurse(item):
+            for index in range(item.childCount()):
+                child = item.child(index)
+                entry = child.data(0, Qt.ItemDataRole.UserRole)
+                default_expanded = bool(entry and entry.level <= 1)
+                child.setExpanded(state.get(entry.sno, default_expanded) if entry else default_expanded)
+                recurse(child)
+
+        recurse(self.outline_tree.invisibleRootItem())
+
+    def _set_expand_state(self, item, expanded: bool) -> None:
+        entry = item.data(0, Qt.ItemDataRole.UserRole)
+        if not entry or not self.book:
+            return
+        self._expand_state.setdefault(self.book.book_id, {})[entry.sno] = expanded
+
+    def _apply_outline_filter(self) -> None:
+        needle = self.outline_filter.text().casefold().strip()
+        self.outline_tree.blockSignals(True)
+        self._filter_item(self.outline_tree.invisibleRootItem(), needle)
+        self.outline_tree.blockSignals(False)
+        if not needle:
+            self._apply_expand_state()
+
+    def _filter_item(self, item, needle: str) -> bool:
+        """Hides rows whose title doesn't match, but keeps ancestors of any surviving
+        descendant visible (and expanded) so the match stays reachable in its outline
+        context -- title-only filtering that never has to touch the extracted text."""
+        any_visible_child = False
+        for index in range(item.childCount()):
+            child = item.child(index)
+            entry = child.data(0, Qt.ItemDataRole.UserRole)
+            self_match = (not needle) or bool(entry and needle in entry.title.casefold())
+            descendant_visible = self._filter_item(child, needle)
+            child_visible = self_match or descendant_visible
+            child.setHidden(not child_visible)
+            if needle and descendant_visible:
+                child.setExpanded(True)
+            any_visible_child = any_visible_child or child_visible
+        return any_visible_child
+
+    def _outline_selection_changed(self, current, _previous) -> None:
+        entry = current.data(0, Qt.ItemDataRole.UserRole) if current else None
+        self.current_entry = entry
+        self.current_content = self._sno_to_record.get(entry.sno) if entry else None
+        if self.left_tabs.currentIndex() == 0:
+            self._render_outline_current()
+
+    def _render_outline_current(self) -> None:
+        entry = self.current_entry
+        if entry is None:
+            self.text.setPlainText("")
+            self.metadata.setText("Select an outline entry to preview its extracted content.")
+            self.preview.set_context("", "")
+            self.reading_status.setText("")
+            self.prev_button.setEnabled(False); self.next_button.setEnabled(False)
+            return
+        record = self.current_content
+        if record:
+            self._render_text(record.get("text", ""))
+            self._render_reading_header(record)
+            self._show_source_page(record)
+        else:
+            self._render_text("")
+            self._render_entry_only_header(entry)
+            self._show_source_page_for_entry(entry)
+        self._render_outline_navigation_status(entry)
+
+    def _render_entry_only_header(self, entry: OutlineEntry) -> None:
+        book = self.book
+        run = self._run_record_for_id(self.run_filter.currentData())
+        run_started = format_timestamp(run.started_at) if run else "—"
+        physical = self._resolved_physical_page(entry)
+        lines = [
+            f"<b>Book</b><br>{book.filename if book else '—'}",
+            f"<br><b>Run</b><br>{run_started}",
+            f"<br><b>Section</b><br>{entry.title}",
+            f"<br><b>Printed Page</b><br>{entry.printed_start or '—'}",
+            f"<br><b>Kind</b><br>{entry.kind}",
+            f"<br><b>Physical Page</b><br>{physical or '—'}",
+            "<br><b style='color:#9a5a00'>Not extracted in the selected run</b>",
+        ]
+        self.metadata.setText("<br>".join(lines))
+
+    def _resolved_physical_page(self, entry: OutlineEntry) -> int | None:
+        if not self.book:
+            return entry.physical_start
+        mapping = self.window.services.mappings.load(self.book.book_id)
+        return mapping.resolve_entry(entry).physical_page
+
+    def _show_source_page_for_entry(self, entry: OutlineEntry) -> None:
+        book = self.book
+        if not book or not book.path.exists():
+            self.preview.set_context(entry.title, "source PDF unavailable")
+            return
+        physical = self._resolved_physical_page(entry)
+        if self._preview_book_id != book.book_id:
+            self.preview.set_pdf(book.path, book.page_count)
+            self._preview_book_id = book.book_id
+        if physical:
+            self.preview.jump_to(physical)
+        self.preview.set_context(entry.title, f"printed {entry.printed_start or '—'} · physical {physical or 'not mapped'}")
+
+    def _render_outline_navigation_status(self, entry: OutlineEntry) -> None:
+        total = len(self.outline_entries)
+        index = next((i for i, item in enumerate(self.outline_entries) if item.sno == entry.sno), None)
+        if index is not None:
+            run = self._run_record_for_id(self.run_filter.currentData())
+            run_status = run.status.title() if run else "—"
+            self.reading_status.setText(f"Entry {index + 1} of {total} · Run: {run_status}")
+            self.prev_button.setEnabled(index > 0)
+            self.next_button.setEnabled(index < total - 1)
+        else:
+            self.reading_status.setText("")
+            self.prev_button.setEnabled(False); self.next_button.setEnabled(False)
+
+    def _outline_step(self, delta: int) -> None:
+        if not self.outline_entries or self.current_entry is None:
+            return
+        index = next((i for i, e in enumerate(self.outline_entries) if e.sno == self.current_entry.sno), None)
+        if index is None:
+            return
+        target = index + delta
+        if 0 <= target < len(self.outline_entries):
+            item = self._sno_to_item.get(self.outline_entries[target].sno)
+            if item:
+                self.outline_tree.setCurrentItem(item)
+
+    # ---- Full-text Search tab -----------------------------------------------------
 
     def search(self):
         self.items = self.window.services.search.search(
@@ -1057,24 +1307,16 @@ class BrowserScreen(Screen):
             self.run_filter.currentData() or None, self.kind.currentData() or None,
             self.page_from.value() or None, self.page_to.value() or None,
         )
+        self.results.blockSignals(True)
         self.results.clear()
         for item in self.items:
-            self.results.addItem(f"{item['title']}\n{item['snippet']}")
+            self.results.addItem(item["title"])
+        self.results.setCurrentRow(0 if self.items else -1)
+        self.results.blockSignals(False)
         self.empty_label.setVisible(not self.items)
         self._render_search_summary()
-        if self.items:
-            self.results.setCurrentRow(0)
-            self.show_result(0)
-        else:
-            self.text.setPlainText("")
-            has_runs = self.run_filter.count() > 1
-            if not has_runs:
-                self.metadata.setText("No completed extractions yet. Extract a book from Workspace 4 — its corpus will appear here automatically.")
-            elif self.query.text() or self.kind.currentData() or self.page_from.value() or self.page_to.value():
-                self.metadata.setText("No sections match the current search and filters. Clear a filter or choose a different run.")
-            else:
-                self.metadata.setText("This run has no extracted sections.")
-            self._render_navigation_status(-1)
+        if self.left_tabs.currentIndex() == 1:
+            self._render_search_result(self.results.currentRow())
 
     def clear_search(self):
         """Reuses the existing search() exactly as-is -- just resets the query/kind/page
@@ -1117,11 +1359,23 @@ class BrowserScreen(Screen):
         self.search_summary.setText("".join(lines))
 
     def show_result(self, row):
+        self._render_search_result(row)
+
+    def _render_search_result(self, row: int) -> None:
         if 0 <= row < len(self.items):
             item = self.items[row]
             self._render_text(item.get("text", ""))
             self._render_reading_header(item)
             self._show_source_page(item)
+        else:
+            self.text.setPlainText("")
+            has_runs = self.run_filter.count() > 1
+            if not has_runs:
+                self.metadata.setText("No completed extractions yet. Extract a book from Workspace 4 — its corpus will appear here automatically.")
+            elif self.query.text() or self.kind.currentData() or self.page_from.value() or self.page_to.value():
+                self.metadata.setText("No sections match the current search and filters. Clear a filter or choose a different run.")
+            else:
+                self.metadata.setText("This run has no extracted sections.")
         self._render_navigation_status(row)
 
     def _run_record_for(self, item: dict):
@@ -1187,19 +1441,46 @@ class BrowserScreen(Screen):
             self.preview.jump_to(physical_start)
         self.preview.set_context(item.get("title", ""), f"printed {item.get('printed_start')} · physical {physical_start}")
 
-    def open_text(self):
+    # ---- Shared navigation + actions (act on whichever tab is active) ------------
+
+    def _tab_changed(self, index: int) -> None:
+        if index == 0:
+            self._render_outline_current()
+        else:
+            self._render_search_result(self.results.currentRow())
+
+    def _nav_prev(self):
+        if self.left_tabs.currentIndex() == 0:
+            self._outline_step(-1)
+        else:
+            self.results.setCurrentRow(self.results.currentRow() - 1)
+
+    def _nav_next(self):
+        if self.left_tabs.currentIndex() == 0:
+            self._outline_step(1)
+        else:
+            self.results.setCurrentRow(self.results.currentRow() + 1)
+
+    def _active_content(self) -> dict | None:
+        if self.left_tabs.currentIndex() == 0:
+            return self.current_content
         row = self.results.currentRow()
-        if 0 <= row < len(self.items) and self.items[row].get("txt_path"):
-            open_path(Path(self.items[row]["txt_path"]))
+        return self.items[row] if 0 <= row < len(self.items) else None
+
+    def open_text(self):
+        content = self._active_content()
+        if content and content.get("txt_path"):
+            open_path(Path(content["txt_path"]))
 
     def open_jsonl(self):
-        row = self.results.currentRow()
-        if 0 <= row < len(self.items): open_path(Path(self.items[row]["jsonl_path"]))
+        content = self._active_content()
+        if content and content.get("jsonl_path"):
+            open_path(Path(content["jsonl_path"]))
 
     def open_manifest(self):
-        row = self.results.currentRow()
-        if 0 <= row < len(self.items):
-            run_dir = Path(self.items[row]["jsonl_path"]).parents[1]
+        content = self._active_content()
+        if content and content.get("jsonl_path"):
+            run_dir = Path(content["jsonl_path"]).parents[1]
             manifests = list((run_dir / "manifests").glob("*.csv"))
             if manifests: open_path(manifests[0])
 
@@ -1210,9 +1491,9 @@ class BrowserScreen(Screen):
             Path(filename).write_text(json.dumps(self.items, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     def reveal(self):
-        row = self.results.currentRow()
-        if 0 <= row < len(self.items):
-            reveal_path(Path(self.items[row]["jsonl_path"]).parents[1])
+        content = self._active_content()
+        if content and content.get("jsonl_path"):
+            reveal_path(Path(content["jsonl_path"]).parents[1])
 
 
 class HistoryScreen(Screen):
